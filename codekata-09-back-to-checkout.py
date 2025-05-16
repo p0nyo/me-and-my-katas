@@ -1,9 +1,7 @@
-import pytest
-
 
 class PricingRule:
     def calculate_total(self, quantity, unit_price):
-        return quantity, unit_price
+        return quantity * unit_price
     
 
 class BulkDiscountRule(PricingRule):
@@ -25,12 +23,10 @@ class Checkout:
         self.items = {}
 
     def scan(self, item):
-        if item not in self.items_price:
+        if item not in self.unit_prices:
             raise KeyError("Item not in price list.")
-        if item not in self.items:
-            self.items[item] = 1
-        else:
-            self.items[item] += 1
+        self.items[item] = self.items.get(item, 0) + 1
+
 
     def total(self):
         total_price = 0
@@ -46,16 +42,6 @@ class Checkout:
     def clear(self):
         self.items = {}
 
-    # Helper function
-    def calculating_total_with_discounts(self, item_quantity, item_price, discount_quantity, discount_price):
-        discounted_items = item_quantity // discount_quantity
-        discounted_items_price = discounted_items * discount_price
-
-        remaining_items = item_quantity % discount_quantity
-        remaining_items_price = remaining_items * item_price
-
-        return discounted_items_price + remaining_items_price
-    
     def __repr__(self):
         return f"Checkout(items={self.items})"
 
@@ -126,6 +112,8 @@ class TestCheckOutPrice:
         co.scan("A")
         co.scan("C")
         assert "Checkout(items={'A': 2, 'B': 1, 'C': 1})" == repr(co)
+        co.clear()
+        assert "Checkout(items={})" == repr(co)
 
     def test_clear(self):
         co = Checkout(self.rules)
